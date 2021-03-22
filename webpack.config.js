@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WriteFilePlugin = require("write-file-webpack-plugin");
 
 const config = {
   mode: process.env.NODE_ENV || 'development',
@@ -12,8 +13,11 @@ const config = {
   },
   output: {
     path: path.join(__dirname, 'build'),
-    filename: '[name].bundle.js',
-    assetModuleFilename: '[name][ext]'
+    filename: function (pathData) {
+      return pathData.chunk.name === 'background' ? '[name].js' : '[name].bundle.js';
+    },
+    assetModuleFilename: '[name][ext]',
+    clean: true
   },
   module: {
     rules: [
@@ -58,16 +62,14 @@ const config = {
       filename: 'options.html',
       chunks: ['options']
     }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'src', 'background.html'),
-      filename: 'background.html',
-      chunks: ['background']
-    })
+    new WriteFilePlugin()
   ]
 };
 
 if (process.env.NODE_ENV === 'development') {
-  config.devtool = 'eval-cheap-module-source-map';
+  // TODO: Can not load source map
+  // config.devtool = 'eval-cheap-module-source-map';
+  config.devtool = 'source-map';
 }
 
 module.exports = config;
